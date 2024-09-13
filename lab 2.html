@@ -1,0 +1,166 @@
+<html lang="en"></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 300px;
+        }
+        .container button, .container input[type="text"], .container input[type="radio"] {
+            margin: 5px 0;
+        }
+        .container input[type="text"] {
+            width: calc(100% - 12px);
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .container button {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #e0e0e0;
+        }
+        .results {
+            border: 1px solid green;
+            padding: 5px;
+            margin-top: 10px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button onclick="displayAllNames()">All Names</button>
+        <input type="text" id="health-issues" placeholder="Health Issues" oninput="displayHealthIssues()">
+        <div>
+            <input type="radio" id="imperial" name="unit" checked>
+            <label for="imperial">Imperial</label>
+            <input type="radio" id="metric" name="unit">
+            <label for="metric">Metric</label>
+            <button onclick="displayWeights()">Weight</button>
+        </div>
+        <button onclick="displayIntelligenceFriendly()">Intelligence - Friendly</button>
+        <button onclick="displayAverageIntelligence()">Average Intelligence</button>
+        <button onclick="displayAverageIntelligenceForChildFriendly()">Average Intelligence for Child Friendly = 4</button>
+        <div id="results" class="results">
+            &lt;--All Results should be displayed here--&gt;
+        </div>
+    </div>
+
+    <script>
+        async function displayAllNames() {
+            try {
+                const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                if (!response.ok) {
+                    throw new Error('Something went wrong.');
+                }
+                const catNames = await response.json();
+                const resultsDiv = document.getElementById('results');
+                const names = catNames.map((cat, index) => `${index + 1}. ${cat.name}`);
+                resultsDiv.innerHTML = `Total Cats: ${names.length}<br>${names.join('<br>')}`;
+            } catch (error) {
+                console.error('Error fetching cat names:', error);
+            }
+        }
+
+        async function displayHealthIssues() {
+            const healthIssueNumber = document.getElementById('health-issues').value;
+            if (healthIssueNumber) {
+                try {
+                    const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                    if (!response.ok) {
+                        throw new Error('Something went wrong.');
+                    }
+                    const catData = await response.json();
+                    const filteredCats = catData.filter(cat => cat.health_issues == healthIssueNumber);
+                    const resultsDiv = document.getElementById('results');
+                    const names = filteredCats.map((cat, index) => `${index + 1}. ${cat.name}`);
+                    resultsDiv.innerHTML = `Total Cats with Health Issue ${healthIssueNumber}: ${names.length}<br>${names.join('<br>')}`;
+                } catch (error) {
+                    console.error('Error fetching cats with health issue:', error);
+                }
+            }
+        }
+
+        async function displayWeights() {
+            try {
+                const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                if (!response.ok) {
+                    throw new Error('Something went wrong.');
+                }
+                const catWeights = await response.json();
+                const isMetric = document.getElementById('metric').checked;
+                const resultsDiv = document.getElementById('results');
+                const weights = catWeights.map((cat, index) => {
+                    const weight = isMetric ? `${cat.weight.metric} kg` : `${cat.weight.imperial} lbs`;
+                    return `${index + 1}. ${cat.name}: ${weight}`;
+                });
+                resultsDiv.innerHTML = `Total Cats: ${weights.length}<br>${weights.join('<br>')}`;
+            } catch (error) {
+                console.error('Error fetching cat weights:', error);
+            }
+        }
+
+        async function displayIntelligenceFriendly() {
+            try {
+                const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                if (!response.ok) {
+                    throw new Error('Something went wrong.');
+                }
+                const catData = await response.json();
+                const resultsDiv = document.getElementById('results');
+                const intelligenceFriendly = catData.map((cat, index) => {
+                    return `${index + 1}. ${cat.name}: I = ${cat.intelligence}, F = ${cat.child_friendly}`;
+                });
+                resultsDiv.innerHTML = `Total Cats: ${intelligenceFriendly.length}<br>${intelligenceFriendly.join('<br>')}`;
+            } catch (error) {
+                console.error('Error fetching cat intelligence and friendliness:', error);
+            }
+        }
+
+        async function displayAverageIntelligence() {
+            try {
+                const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                if (!response.ok) {
+                    throw new Error('Something went wrong.');
+                }
+                const catData = await response.json();
+                const totalIntelligence = catData.reduce((sum, cat) => sum + cat.intelligence, 0);
+                const averageIntelligence = totalIntelligence / catData.length;
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `Average Intelligence: ${averageIntelligence.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error fetching cat intelligence:', error);
+            }
+        }
+
+        async function displayAverageIntelligenceForChildFriendly() {
+            try {
+                const response = await fetch('https://api.thecatapi.com/v1/breeds');
+                if (!response.ok) {
+                    throw new Error('Something went wrong.');
+                }
+                const catData = await response.json();
+                const childFriendlyCats = catData.filter(cat => cat.child_friendly >= 4); // Assuming 4 is the threshold for child-friendly
+                const totalIntelligence = childFriendlyCats.reduce((sum, cat) => sum + cat.intelligence, 0);
+                const averageIntelligence = totalIntelligence / childFriendlyCats.length;
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `Average Intelligence for Child Friendly: ${averageIntelligence.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error fetching cat intelligence for child-friendly cats:', error);
+            }
+        }
+    </script>
+</body>
+</html>
